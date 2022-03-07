@@ -1,14 +1,3 @@
-terraform {
-  required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "~> 2.95"
-    }
-  }
-
-  required_version = "~> 1.1.5"
-}
-
 data "azurerm_log_analytics_workspace" "logs" {
   name                = var.log_analytics_workspace_name
   resource_group_name = var.log_analytics_workspace_resource_group_name
@@ -16,8 +5,8 @@ data "azurerm_log_analytics_workspace" "logs" {
 
 resource "azurerm_recovery_services_vault" "backup" {
   name                = var.recovery_services_vault_name
-  location            = azurerm_resource_group.backup.location
-  resource_group_name = azurerm_resource_group.backup.name
+  location            = var.location
+  resource_group_name = var.resource_group_name
   sku                 = "Standard"
   storage_mode_type   = "GeoRedundant"
   soft_delete_enabled = true
@@ -182,9 +171,9 @@ resource "azurerm_monitor_diagnostic_setting" "recovery_services_vault_site_reco
 
 resource "azurerm_backup_policy_vm" "backup" {
   name                           = "VMBackupPolicy"
-  resource_group_name            = azurerm_resource_group.backup.name
+  resource_group_name            = var.resource_group_name
   recovery_vault_name            = var.recovery_services_vault_name
-  timezone                       = "UTC"
+  timezone                       = var.timezone
   instant_restore_retention_days = 2
 
   backup {
@@ -221,14 +210,17 @@ resource "azurerm_backup_policy_vm" "backup" {
 
 resource "azurerm_resource_group_template_deployment" "backup" {
   name                = "sql-backup-policy"
-  resource_group_name = azurerm_resource_group.backup.name
-  template_content    = file(var.sql_backup_policy_template_path)
+  resource_group_name = var.resource_group_name
+  template_content    = file("az-logging\\arm\\sqlRecoveryServicesVaultBackupPolicy.json")
   parameters_content = jsonencode({
     "recoveryServicesVaultName" = {
       value = var.recovery_services_vault_name
     },
     "location" = {
-      value = azurerm_resource_group.backup.location
+      value = var.location
+    },
+    "timezone" = {
+      value = var.timezone
     },
     "tags" = {
       value = var.tags
