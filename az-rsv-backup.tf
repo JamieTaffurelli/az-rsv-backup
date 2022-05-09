@@ -210,7 +210,7 @@ resource "azurerm_backup_policy_vm" "backup" {
 resource "azurerm_resource_group_template_deployment" "backup" {
   name                = "sql-backup-policy"
   resource_group_name = var.resource_group_name
-  template_content    = file("arm\\sqlRecoveryServicesVaultBackupPolicy.json")
+  template_content    = file("arm/sqlRecoveryServicesVaultBackupPolicy.json")
   parameters_content = jsonencode({
     "recoveryServicesVaultName" = {
       value = var.recovery_services_vault_name
