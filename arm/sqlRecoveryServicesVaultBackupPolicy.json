@@ -120,5 +120,11 @@
         "protectedItemsCount": 0
       }
     }
-  ]
+  ],
+  "outputs": {
+    "resourceID": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.RecoveryServices/vaults/backupPolicies', parameters('recoveryServicesVaultName'))).id]"
+    }
+  }
 }
